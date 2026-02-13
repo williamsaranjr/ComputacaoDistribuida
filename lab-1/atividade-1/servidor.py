@@ -22,18 +22,18 @@ class Comando(ABC):
 
 class ObterPreco(Comando):
     def executar(self, fii: str):
-        return f"R$ {fundos_imobiliarios.get(fii).get("preco"):.02f}"
+        return f"R$ {fundos_imobiliarios[fii].get("preco"):.02f}"
 
 
 class ObterProventos(Comando):
     def executar(self, fii: str):
-        return f"R$ {fundos_imobiliarios.get(fii).get("provento"):.02f}"
+        return f"R$ {fundos_imobiliarios[fii].get("provento"):.02f}"
 
 
 class ObterStatus(Comando):
     def executar(self, fii: str):
-        preco = fundos_imobiliarios.get(fii).get("preco")
-        proventos = fundos_imobiliarios.get(fii).get("provento")
+        preco = fundos_imobiliarios[fii].get("preco")
+        proventos = fundos_imobiliarios[fii].get("provento")
 
         return f"{fii.upper()} - Preço: R$ {preco:.02f} - Proventos: R$ {proventos:.02f}"
 
@@ -53,12 +53,13 @@ if __name__ == "__main__":
     # Configurar o socket
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         try:
-        
             s.bind((HOST, PORT))
             print(f"[INFO] Socket inicializado com sucesso")
 
             s.listen(1)
             print(f"[INFO] Socket aguardando conexões")
+
+            print(f"[INFO] Pressione CTRL + C para finalizar o processo")
 
             while True:
                 # Receber a requisição
@@ -75,14 +76,14 @@ if __name__ == "__main__":
                     # Comandos inválidos
                     if comando not in comandoExecutorMap.keys():
                         print(f"[ERROR] Comando informado não é válido")
-                        conn.sendall("COMANDO_INVALIDO")
+                        conn.sendall("ERRO: Comando inválido".encode("utf-8"))
                         continue
 
                     executor: Comando = comandoExecutorMap.get(comando)
 
                 except Exception:
                     print(f"[ERROR] Ocorreu um erro ao validar a mensagem")
-                    conn.sendall("ERRO_VALIDAR_MENSAGEM")
+                    conn.sendall("ERRO: Mensagem inválida".encode("utf-8"))
                     continue
 
                 # Executar o comando
@@ -96,7 +97,7 @@ if __name__ == "__main__":
 
                 except KeyError:
                     print(f"[ERROR] Cliente informou um ticker inválido")
-                    conn.sendall("TICKER_INVALIDO").encode("utf-8")
+                    conn.sendall("ERRO: Ticker inválido".encode("utf-8"))
                     continue
 
                 except Exception:
